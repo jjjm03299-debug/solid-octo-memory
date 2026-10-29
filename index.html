@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Virtual Card Generator Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f4f6f9; color: #333; }
+        .container { max-width: 850px; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { color: #635bff; }
+        pre { background: #1e1e1e; color: #00ffcc; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { background: #635bff; color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin: 5px 5px 5px 0; }
+        button:hover { background: #4b43c4; }
+        .section { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Nginx NJS Virtual Cards & Keys</h1>
+        
+        <div class="section">
+            <h3>API Keys Management</h3>
+            <button onclick="listApiKeys()">List API Keys</button>
+            <button onclick="createApiKey()">Generate New `sk_live_` Key</button>
+        </div>
+
+        <div class="section">
+            <h3>Virtual Card Actions</h3>
+            <button onclick="listCards()">List Virtual Cards</button>
+            <button onclick="createCard()">Create Virtual Card</button>
+        </div>
+
+        <h2>API Response Log:</h2>
+        <pre id="output">Select an action above...</pre>
+    </div>
+
+    <script>
+        let currentKey = "sk_live_9f83b1a2c4d6e7f8g9h0";
+
+        async function listApiKeys() {
+            let res = await fetch('/api/api-keys');
+            let data = await res.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function createApiKey() {
+            let res = await fetch('/api/api-keys', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: "Dashboard Generated Key" })
+            });
+            let data = await res.json();
+            if (data.key) {
+                currentKey = data.key;
+            }
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function listCards() {
+            let res = await fetch('/api/cards', { headers: { 'Authorization': 'Bearer ' + currentKey } });
+            let data = await res.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function createCard() {
+            let res = await fetch('/api/cards', { 
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + currentKey, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cardholder: "ich_default_live_us" })
+            });
+            let data = await res.json();
+            document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
